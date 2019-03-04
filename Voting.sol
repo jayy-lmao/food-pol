@@ -7,20 +7,20 @@ contract Poll {
         uint voteCount;
     }
 
-    uint quorum;
-    address creator;
+    uint public q;
+    address public creator;
     Choice[] public choices;
     uint topChoiceIndex;
     uint mostVotes;
-    uint result;
     mapping(address => bool) voters;
     mapping(address => bool) hasVoted;
     uint numVoted;
 
     function Poll(uint quorum) public {
+        creator = msg.sender;
         mostVotes = 0;
         topChoiceIndex = 0;
-        quorum = quorum;
+        q = quorum;
     }
 
     function addFriend(address friendAddress) public restricted {
@@ -39,9 +39,6 @@ contract Poll {
             mostVotes = selectedChoice.voteCount;
             topChoiceIndex = choiceIndex;
         }
-        if (numVoted >= quorum) {
-            result = topChoiceIndex;
-        }
     }
 
     function addChoice(string description) public restricted {
@@ -58,8 +55,10 @@ contract Poll {
         return choices;
     }
 
-    function getResult() public view returns (Choice) {
-        return choices[topChoiceIndex];
+    function getResult() public view returns (string) {
+        require(q <= numVoted);
+        Choice memory result = choices[topChoiceIndex];
+        return result.description;
     }
 
     modifier restricted() {
