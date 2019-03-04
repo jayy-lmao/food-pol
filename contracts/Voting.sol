@@ -25,6 +25,10 @@ contract Poll {
         q = quorum;
         sepStr = ", ";
     }
+    
+    function setQuorum(uint quorum) public restricted {
+        q = quorum;
+    }
 
     function addFriend(address friendAddress) public restricted {
         voters[friendAddress] = true;
@@ -94,5 +98,10 @@ Yet to implement:
 3. The contract creator is able to select m friends to vote for n 
 
 May need to make an array friendslist; then have it so that you can select/deselect people for pols
+
+How would you extend the functionality of the smart contract? The description should appear
+as comments in the contract source code. (2 marks)
+• List out function definition, variables declaration, and pseudo-code
+• Explain why
 
 */

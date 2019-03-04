@@ -6,5 +6,5 @@ const votingPath = path.resolve(__dirname, 'contracts', 'Voting.sol');
 const source = fs.readFileSync(votingPath,'utf8');
 
 
-module.exports = solc.compile(source, 1).contracts[":Voting"];
+module.exports = solc.compile(source, 1).contracts[":Poll"];
 
