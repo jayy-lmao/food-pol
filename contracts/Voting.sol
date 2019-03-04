@@ -11,19 +11,14 @@ contract Poll {
     address public creator;
     Choice[] public choices;
     uint topChoiceIndex;
-    uint mostVotes;
-    mapping(address => bool) voters;
+    mapping(address => bool) public voters;
     mapping(address => bool) hasVoted;
     uint numVoted;
-    bytes choiceNames;
-    string sepStr;
+    bytes32[] choiceNames;
 
     function Poll(uint quorum) public {
         creator = msg.sender;
-        mostVotes = 0;
-        topChoiceIndex = 0;
         q = quorum;
-        sepStr = ", ";
     }
     
     function setQuorum(uint quorum) public restricted {
@@ -35,40 +30,39 @@ contract Poll {
     }
 
     function vote(uint choiceIndex) public {
+        require(numVoted < q);
         Choice storage selectedChoice = choices[choiceIndex];
+        Choice storage topChoice = choices[topChoiceIndex];
         require(voters[msg.sender]); // User has been added to voters by Creator
         require(!hasVoted[msg.sender]); // User has not yet voted for this particular vote
-
         hasVoted[msg.sender] = true;
         selectedChoice.voteCount++;
         numVoted++;
-        if (selectedChoice.voteCount > mostVotes) {
-            mostVotes = selectedChoice.voteCount;
+        if (selectedChoice.voteCount > topChoice.voteCount) {
             topChoiceIndex = choiceIndex;
         }
     }
 
     function addChoice(string description) public restricted {
-        // 1. The contract creator is able to add n choices
-        // 5. Contract creator shall set q quorum.
         Choice memory newChoice = Choice({
             description: description,
             voteCount: 0
         });
         choices.push(newChoice);
-        if (choices.length > 1) {
-            for (uint j=0; j < bytes(sepStr).length; j++) {
-                choiceNames.push(bytes(sepStr)[j]);
-            }
-        }
-        for (uint i=0; i < bytes(description).length; i++) {
-            choiceNames.push(bytes(description)[i]);
-        }
+        //choiceNames.push(strTo32(description));
     }
 
-    function listChoices() public view returns (string){
+    function listChoices() public view returns (bytes32[]){
+        return choiceNames;
+    }
 
-        return string(choiceNames);
+    function getChoiceDescription(uint index) public view returns (string) {
+        Choice memory choice = choices[index];
+        return choice.description;
+    }
+    function getChoiceVotes(uint index) public view returns (uint) {
+        Choice memory choice = choices[index];
+        return choice.voteCount;
     }
 
     function getResult() public view returns (string) {
@@ -80,6 +74,16 @@ contract Poll {
     function destroy() public restricted {
         require(msg.sender == creator);
         selfdestruct(creator);
+    }
+
+    function strTo32(string memory input) pure private returns (bytes32 result) {
+        bytes memory zeroTest = bytes(input);
+        if (zeroTest.length == 0){
+            return 0x0;
+        }
+        assembly {
+            result := mload(add(input, 32))
+        }
     }
 
 
