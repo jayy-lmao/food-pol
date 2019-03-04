@@ -1,4 +1,4 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.18;
 
 contract Poll {
 
@@ -15,12 +15,15 @@ contract Poll {
     mapping(address => bool) voters;
     mapping(address => bool) hasVoted;
     uint numVoted;
+    bytes choiceNames;
+    string sepStr;
 
     function Poll(uint quorum) public {
         creator = msg.sender;
         mostVotes = 0;
         topChoiceIndex = 0;
         q = quorum;
+        sepStr = ", ";
     }
 
     function addFriend(address friendAddress) public restricted {
@@ -49,10 +52,19 @@ contract Poll {
             voteCount: 0
         });
         choices.push(newChoice);
+        if (choices.length > 1) {
+            for (uint j=0; j < bytes(sepStr).length; j++) {
+                choiceNames.push(bytes(sepStr)[j]);
+            }
+        }
+        for (uint i=0; i < bytes(description).length; i++) {
+            choiceNames.push(bytes(description)[i]);
+        }
     }
 
-    function listChoices() public view returns (Choice[]){
-        return choices;
+    function listChoices() public view returns (string){
+
+        return string(choiceNames);
     }
 
     function getResult() public view returns (string) {
@@ -60,6 +72,12 @@ contract Poll {
         Choice memory result = choices[topChoiceIndex];
         return result.description;
     }
+
+    function destroy() public restricted {
+        require(msg.sender == creator);
+        selfdestruct(creator);
+    }
+
 
     modifier restricted() {
         // 2. Only the contract creator is able to add n choices via deployed contract
