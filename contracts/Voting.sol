@@ -3,7 +3,7 @@ pragma solidity ^0.4.18;
 contract Poll {
 
     struct Choice {
-        string description;
+        bytes32 description;
         uint voteCount;
     }
 
@@ -14,7 +14,7 @@ contract Poll {
     mapping(address => bool) public voters;
     mapping(address => bool) hasVoted;
     uint numVoted;
-    bytes choiceNames;
+    bytes32[] choiceNames;
 
     function Poll(uint quorum) public {
         creator = msg.sender;
@@ -43,33 +43,24 @@ contract Poll {
         }
     }
 
-    function addChoice(string description) public restricted {
+    function addChoice(bytes32 description) public restricted {
         Choice memory newChoice = Choice({
             description: description,
             voteCount: 0
         });
         choices.push(newChoice);
+        choiceNames.push(description);
         /*
         NOTE: This next line enables the printing of all choices in a list; however currently there is no way to do this which isnt incredibly gas-expensive. If you wish to deploy this I recommend you comment this line out.
         */
-        addToChoiceName(description);
+        //addToChoiceName(description);
     }
 
-    function addToChoiceName(string description) private {
-        bytes memory desBytes = bytes(description);
-        for (uint i=0; i < desBytes.length; i++) {
-            choiceNames.push(desBytes[i]);
-        }
-        choiceNames.push(0x2c);
-        choiceNames.push(0x20);
-
+    function listChoices() public view returns (bytes32[]){
+        return choiceNames;
     }
 
-    function listChoices() public view returns (string){
-        return string(choiceNames);
-    }
-
-    function getChoiceDescription(uint index) public view returns (string) {
+    function getChoiceDescription(uint index) public view returns (bytes32) {
         Choice memory choice = choices[index];
         return choice.description;
     }
@@ -78,7 +69,7 @@ contract Poll {
         return choice.voteCount;
     }
 
-    function getResult() public view returns (string) {
+    function getResult() public view returns (bytes32) {
         require(q <= numVoted);
         Choice memory result = choices[topChoiceIndex];
         return result.description;
