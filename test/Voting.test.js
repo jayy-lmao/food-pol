@@ -15,7 +15,7 @@ beforeEach(async () => {
 
   poll = await new web3.eth.Contract(JSON.parse(interface))
     .deploy({ data: bytecode, arguments: ["2"] })
-    .send({ from: accounts[0], gas: "5000000" });
+    .send({ from: accounts[0], gas: "1000000" });
 
   poll.setProvider(provider);
 });
@@ -30,30 +30,30 @@ describe("Poll Contract", async () => {
 
   it("1. Can add a choice", async () => {
     const choice = "Nandos";
-    await poll.methods.addChoice(choice).send({
+    await poll.methods.addChoice(web3.utils.asciiToHex(choice)).send({
       from: accounts[0]
     });
-    const contractChoice = await poll.methods.getChoiceDescription(0).call();
+    const contractChoice = web3.utils.hexToUtf8(await poll.methods.getChoiceDescription(0).call()); //.slice(0,choice.length);
     assert.equal(choice, contractChoice);
   });
   it("1. Can add multiple choices", async () => {
     const choice0 = "Nandos";
     const choice1 = "Maccas";
     const choice2 = "Puddin";
-    await poll.methods.addChoice(choice0).send({
+    await poll.methods.addChoice(web3.utils.asciiToHex(choice0)).send({
       from: accounts[0]
     });
-    await poll.methods.addChoice(choice1).send({
+    await poll.methods.addChoice(web3.utils.asciiToHex(choice1)).send({
       from: accounts[0]
     });
-    await poll.methods.addChoice(choice2).send({
+    await poll.methods.addChoice(web3.utils.asciiToHex(choice2)).send({
       from: accounts[0]
     });
-    const contractChoice0 = await poll.methods.getChoiceDescription(0).call();
+    const contractChoice0 =web3.utils.hexToUtf8( await poll.methods.getChoiceDescription(0).call());
     assert.equal(choice0, contractChoice0);
-    const contractChoice1 = await poll.methods.getChoiceDescription(1).call();
+    const contractChoice1 =web3.utils.hexToUtf8( await poll.methods.getChoiceDescription(1).call());
     assert.equal(choice1, contractChoice1);
-    const contractChoice2 = await poll.methods.getChoiceDescription(2).call();
+    const contractChoice2 =web3.utils.hexToUtf8( await poll.methods.getChoiceDescription(2).call());
     assert.equal(choice2, contractChoice2);
   });
 
@@ -64,7 +64,7 @@ describe("Poll Contract", async () => {
     await poll.methods.addChoice(choice).send({
       from: accounts[1]
     });
-    const contractChoice = await poll.methods.getChoiceDescription(0).call();
+    const contractChoice = web3.utils.hexToUtf8(await poll.methods.getChoiceDescription(0).call());
     assert(false);
     } catch (err) {
       assert(err)
@@ -76,10 +76,10 @@ describe("Poll Contract", async () => {
     await poll.methods.addFriend(accounts[1]).send({
       from: accounts[0]
     });
-    await poll.methods.addChoice(choice).send({
+    await poll.methods.addChoice(web3.utils.asciiToHex(choice)).send({
       from: accounts[1]
     });
-    const contractChoice = await poll.methods.getChoiceDescription(0).call();
+    const contractChoice = web3.utils.hexToUtf8(await poll.methods.getChoiceDescription(0).call());
     assert(false);
     } catch (err) {
       assert(err)
@@ -140,7 +140,7 @@ describe("Poll Contract", async () => {
 
   it('7. friend can vote', async () => {
     const choice = "Nandos";
-    await poll.methods.addChoice(choice).send({
+    await poll.methods.addChoice(web3.utils.asciiToHex(choice)).send({
       from: accounts[0]
     });
     await poll.methods.addFriend(accounts[1]).send({
@@ -152,7 +152,7 @@ describe("Poll Contract", async () => {
   });
   it('7. several friend can vote', async () => {
     const choice = "Nandos";
-    await poll.methods.addChoice(choice).send({
+    await poll.methods.addChoice(web3.utils.asciiToHex(choice)).send({
       from: accounts[0]
     });
     await poll.methods.addFriend(accounts[1]).send({
@@ -168,7 +168,7 @@ describe("Poll Contract", async () => {
   });
   it('7. Each selected friend can vote ONLY ONCE', async () => {
     const choice = "Nandos";
-    await poll.methods.addChoice(choice).send({
+    await poll.methods.addChoice(web3.utils.asciiToHex(choice)).send({
       from: accounts[0]
     });
     await poll.methods.addFriend(accounts[1]).send({
@@ -186,7 +186,7 @@ describe("Poll Contract", async () => {
   //8. The contract must stop accepting vote when q is met
   it('8. Stops accepting after q votes', async () => {
     const choice = "Nandos";
-    await poll.methods.addChoice(choice).send({
+    await poll.methods.addChoice(web3.utils.asciiToHex(choice)).send({
       from: accounts[0]
     });
     await poll.methods.addFriend(accounts[1]).send({
@@ -214,10 +214,10 @@ describe("Poll Contract", async () => {
     const choice = "Nandos";
     const choice2 = "Maccas"
     await poll.methods.setQuorum(3).send({ from: accounts[0]});
-    await poll.methods.addChoice(choice).send({
+    await poll.methods.addChoice(web3.utils.asciiToHex(choice)).send({
       from: accounts[0]
     });
-    await poll.methods.addChoice(choice2).send({
+    await poll.methods.addChoice(web3.utils.asciiToHex(choice2)).send({
       from: accounts[0]
     });
     await poll.methods.addFriend(accounts[1]).send({
@@ -232,7 +232,7 @@ describe("Poll Contract", async () => {
     await poll.methods.vote(0).send({ from: accounts[1] })
     await poll.methods.vote(0).send({ from: accounts[2] })
     await poll.methods.vote(1).send({ from: accounts[3] })
-    const victor = await poll.methods.getResult().call()
+    const victor =web3.utils.hexToUtf8(await poll.methods.getResult().call())
     assert.equal(choice, victor);
   });
 

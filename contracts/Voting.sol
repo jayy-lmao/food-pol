@@ -49,7 +49,7 @@ contract Poll {
             voteCount: 0
         });
         choices.push(newChoice);
-        choiceNames.push(description);
+        //choiceNames.push(description);
         /*
         NOTE: This next line enables the printing of all choices in a list; however currently there is no way to do this which isnt incredibly gas-expensive. If you wish to deploy this I recommend you comment this line out.
         */
