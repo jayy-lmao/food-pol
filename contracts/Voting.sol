@@ -2,19 +2,15 @@ pragma solidity ^0.4.18;
 
 contract Poll {
 
-    struct Choice {
-        bytes32 description;
-        uint voteCount;
-    }
-
     uint public q;
     address public creator;
-    Choice[] public choices;
     uint topChoiceIndex;
     mapping(address => bool) public voters;
     mapping(address => bool) hasVoted;
     uint numVoted;
-    bytes32[] choiceNames;
+    uint numChoices;
+    bytes32[64] choiceNames;
+    uint[64] choiceVotes;
 
     function Poll(uint quorum) public {
         creator = msg.sender;
@@ -30,49 +26,35 @@ contract Poll {
     }
 
     function vote(uint choiceIndex) public {
-        require(numVoted < q);
-        Choice storage selectedChoice = choices[choiceIndex];
-        Choice storage topChoice = choices[topChoiceIndex];
-        require(voters[msg.sender]); // User has been added to voters by Creator
-        require(!hasVoted[msg.sender]); // User has not yet voted for this particular vote
+        require(numVoted < q && !hasVoted[msg.sender] && voters[msg.sender]);
         hasVoted[msg.sender] = true;
-        selectedChoice.voteCount++;
+        choiceVotes[choiceIndex]++;
         numVoted++;
-        if (selectedChoice.voteCount > topChoice.voteCount) {
+        if (choiceVotes[choiceIndex] > choiceVotes[topChoiceIndex]) {
             topChoiceIndex = choiceIndex;
         }
     }
 
     function addChoice(bytes32 description) public restricted {
-        Choice memory newChoice = Choice({
-            description: description,
-            voteCount: 0
-        });
-        choices.push(newChoice);
-        //choiceNames.push(description);
-        /*
-        NOTE: This next line enables the printing of all choices in a list; however currently there is no way to do this which isnt incredibly gas-expensive. If you wish to deploy this I recommend you comment this line out.
-        */
-        //addToChoiceName(description);
+        choiceNames[numChoices]=description;
+        choiceVotes[numChoices]=0;
+        numChoices++;
     }
 
-    function listChoices() public view returns (bytes32[]){
+    function listChoices() public view returns (bytes32[64]){
         return choiceNames;
     }
 
     function getChoiceDescription(uint index) public view returns (bytes32) {
-        Choice memory choice = choices[index];
-        return choice.description;
+        return choiceNames[index];
     }
     function getChoiceVotes(uint index) public view returns (uint) {
-        Choice memory choice = choices[index];
-        return choice.voteCount;
+        return choiceVotes[index];
     }
 
     function getResult() public view returns (bytes32) {
         require(q <= numVoted);
-        Choice memory result = choices[topChoiceIndex];
-        return result.description;
+        return choiceNames[topChoiceIndex];
     }
 
     function destroy() public restricted {
@@ -103,3 +85,4 @@ as comments in the contract source code. (2 marks)
 • Explain why
 
 */
+
