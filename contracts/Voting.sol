@@ -9,8 +9,9 @@ contract Poll {
     mapping(address => bool) hasVoted;
     uint numVoted;
     uint numChoices;
-    bytes32[64] choiceNames;
-    uint[64] choiceVotes;
+    bool private tie;
+    bytes32[64] public choiceNames;
+    uint[64] public choiceVotes;
 
     function Poll(uint quorum) public {
         creator = msg.sender;
@@ -30,14 +31,19 @@ contract Poll {
         hasVoted[msg.sender] = true;
         choiceVotes[choiceIndex]++;
         numVoted++;
-        if (choiceVotes[choiceIndex] > choiceVotes[topChoiceIndex]) {
-            topChoiceIndex = choiceIndex;
+        if (choiceVotes[choiceIndex] > choiceVotes[topChoiceIndex]){
+            if (choiceVotes[choiceIndex] == choiceVotes[topChoiceIndex]){
+                tie = true;
+            } else { 
+                topChoiceIndex = choiceIndex;
+                tie = false; 
+            }
         }
     }
 
+
     function addChoice(bytes32 description) public restricted {
         choiceNames[numChoices]=description;
-        choiceVotes[numChoices]=0;
         numChoices++;
     }
 
@@ -45,26 +51,17 @@ contract Poll {
         return choiceNames;
     }
 
-    function getChoiceDescription(uint index) public view returns (bytes32) {
-        return choiceNames[index];
-    }
-    function getChoiceVotes(uint index) public view returns (uint) {
-        return choiceVotes[index];
-    }
-
     function getResult() public view returns (bytes32) {
-        require(q <= numVoted);
-        return choiceNames[topChoiceIndex];
+        require(q == numVoted);
+        return tie ? bytes32(0x57696e6e65727320686176652074696564) : choiceNames[topChoiceIndex];
     }
 
     function destroy() public restricted {
-        require(msg.sender == creator);
         selfdestruct(creator);
     }
 
 
     modifier restricted() {
-        // 2. Only the contract creator is able to add n choices via deployed contract
         require(msg.sender==creator);
         _;
     }
@@ -83,6 +80,8 @@ How would you extend the functionality of the smart contract? The description sh
 as comments in the contract source code. (2 marks)
 • List out function definition, variables declaration, and pseudo-code
 • Explain why
+
+One idea might be to have a timeout limit or something.
 
 */
 

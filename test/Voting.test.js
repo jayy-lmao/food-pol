@@ -15,7 +15,7 @@ beforeEach(async () => {
 
   poll = await new web3.eth.Contract(JSON.parse(interface))
     .deploy({ data: bytecode, arguments: ["2"] })
-    .send({ from: accounts[0], gas: "1000000" });
+    .send({ from: accounts[0], gas: "6000000" });
 
   poll.setProvider(provider);
 });
@@ -33,7 +33,7 @@ describe("Poll Contract", async () => {
     await poll.methods.addChoice(web3.utils.asciiToHex(choice)).send({
       from: accounts[0]
     });
-    const contractChoice = web3.utils.hexToUtf8(await poll.methods.getChoiceDescription(0).call()); //.slice(0,choice.length);
+    const contractChoice = web3.utils.hexToUtf8(await poll.methods.choiceNames(0).call()); //.slice(0,choice.length);
     assert.equal(choice, contractChoice);
   });
   it("1. Can add multiple choices", async () => {
@@ -49,11 +49,11 @@ describe("Poll Contract", async () => {
     await poll.methods.addChoice(web3.utils.asciiToHex(choice2)).send({
       from: accounts[0]
     });
-    const contractChoice0 =web3.utils.hexToUtf8( await poll.methods.getChoiceDescription(0).call());
+    const contractChoice0 =web3.utils.hexToUtf8( await poll.methods.choiceNames(0).call());
     assert.equal(choice0, contractChoice0);
-    const contractChoice1 =web3.utils.hexToUtf8( await poll.methods.getChoiceDescription(1).call());
+    const contractChoice1 =web3.utils.hexToUtf8( await poll.methods.choiceNames(1).call());
     assert.equal(choice1, contractChoice1);
-    const contractChoice2 =web3.utils.hexToUtf8( await poll.methods.getChoiceDescription(2).call());
+    const contractChoice2 =web3.utils.hexToUtf8( await poll.methods.choiceNames(2).call());
     assert.equal(choice2, contractChoice2);
   });
 
@@ -64,7 +64,7 @@ describe("Poll Contract", async () => {
     await poll.methods.addChoice(choice).send({
       from: accounts[1]
     });
-    const contractChoice = web3.utils.hexToUtf8(await poll.methods.getChoiceDescription(0).call());
+    const contractChoice = web3.utils.hexToUtf8(await poll.methods.choiceNames(0).call());
     assert(false);
     } catch (err) {
       assert(err)
@@ -79,7 +79,7 @@ describe("Poll Contract", async () => {
     await poll.methods.addChoice(web3.utils.asciiToHex(choice)).send({
       from: accounts[1]
     });
-    const contractChoice = web3.utils.hexToUtf8(await poll.methods.getChoiceDescription(0).call());
+    const contractChoice = web3.utils.hexToUtf8(await poll.methods.choiceNames(0).call());
     assert(false);
     } catch (err) {
       assert(err)
@@ -147,7 +147,7 @@ describe("Poll Contract", async () => {
       from: accounts[0]
     });
     await poll.methods.vote(0).send({ from: accounts[1] })
-    const votes = await poll.methods.getChoiceVotes(0).call()
+    const votes = await poll.methods.choiceVotes(0).call()
     assert.equal(votes, 1);
   });
   it('7. several friend can vote', async () => {
@@ -163,7 +163,7 @@ describe("Poll Contract", async () => {
     });
     await poll.methods.vote(0).send({ from: accounts[1] })
     await poll.methods.vote(0).send({ from: accounts[2] })
-    const votes = await poll.methods.getChoiceVotes(0).call()
+    const votes = await poll.methods.choiceVotes(0).call()
     assert.equal(votes, 2);
   });
   it('7. Each selected friend can vote ONLY ONCE', async () => {
@@ -176,7 +176,7 @@ describe("Poll Contract", async () => {
     });
     try { await poll.methods.vote(0).send({ from: accounts[1] })
     await poll.methods.vote(0).send({ from: accounts[1] })
-    const votes = await poll.methods.getChoiceVotes(0).call()
+    const votes = await poll.methods.choiceVotes(0).call()
     assert(false);
     } catch (err) {
       assert(err)
@@ -202,7 +202,7 @@ describe("Poll Contract", async () => {
       await poll.methods.vote(0).send({ from: accounts[1] })
       await poll.methods.vote(0).send({ from: accounts[2] })
       await poll.methods.vote(0).send({ from: accounts[3] })
-      const votes = await poll.methods.getChoiceVotes(0).call()
+      const votes = await poll.methods.choiceVotes(0).call()
     assert(false);
     } catch (err) {
       assert(err)
